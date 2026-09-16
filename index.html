@@ -1,0 +1,907 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>GLOBAL MARKET</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Noto Sans KR', sans-serif;
+      background: #0f172a;
+      color: #e2e8f0;
+      min-height: 100vh;
+      padding-bottom: 80px;
+    }
+    .hidden { display: none !important; }
+    #login-screen {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      padding: 20px;
+      text-align: center;
+    }
+    #login-screen h1 {
+      font-size: 2rem;
+      background: linear-gradient(135deg, #38bdf8, #a78bfa);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 8px;
+    }
+    #login-screen p { color: #94a3b8; margin-bottom: 24px; font-size: 0.9rem; }
+    input[type="text"], input[type="number"] {
+      width: 100%;
+      max-width: 280px;
+      padding: 14px 16px;
+      border: 2px solid #334155;
+      border-radius: 12px;
+      background: #1e293b;
+      color: #f1f5f9;
+      font-size: 16px;
+      margin-bottom: 12px;
+    }
+    input:focus { outline: none; border-color: #38bdf8; }
+    button {
+      padding: 14px 28px;
+      border: none;
+      border-radius: 12px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: transform 0.1s, opacity 0.2s;
+    }
+    button:active { transform: scale(0.97); }
+    .btn-primary {
+      background: linear-gradient(135deg, #0ea5e9, #6366f1);
+      color: white;
+      width: 100%;
+      max-width: 280px;
+    }
+    .btn-secondary {
+      background: #334155;
+      color: #e2e8f0;
+    }
+    .btn-danger { background: #dc2626; color: white; }
+    .btn-success { background: #16a34a; color: white; }
+    .btn-sm { padding: 8px 14px; font-size: 13px; }
+
+    /* Header */
+    #game-header {
+      position: sticky;
+      top: 0;
+      background: #1e293b;
+      padding: 12px 16px;
+      border-bottom: 1px solid #334155;
+      z-index: 100;
+    }
+    .header-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 6px;
+    }
+    .month-badge {
+      background: linear-gradient(135deg, #0ea5e9, #6366f1);
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-weight: 700;
+      font-size: 0.95rem;
+    }
+    .timer {
+      font-family: monospace;
+      font-size: 1.3rem;
+      font-weight: 700;
+      color: #fbbf24;
+    }
+    .timer.low { color: #f87171; animation: pulse 1s infinite; }
+    @keyframes pulse { 50% { opacity: 0.6; } }
+    .stats {
+      display: flex;
+      gap: 12px;
+      font-size: 0.85rem;
+      flex-wrap: wrap;
+    }
+    .stats span { color: #94a3b8; }
+    .stats strong { color: #f1f5f9; }
+
+    /* Tabs */
+    .tabs {
+      display: flex;
+      background: #1e293b;
+      border-bottom: 1px solid #334155;
+      overflow-x: auto;
+      position: sticky;
+      top: 70px;
+      z-index: 90;
+    }
+    .tab {
+      flex: 1;
+      min-width: 70px;
+      padding: 12px 8px;
+      text-align: center;
+      font-size: 0.8rem;
+      color: #94a3b8;
+      border: none;
+      background: transparent;
+      border-bottom: 3px solid transparent;
+    }
+    .tab.active {
+      color: #38bdf8;
+      border-bottom-color: #38bdf8;
+      font-weight: 600;
+    }
+
+    /* Content */
+    .panel { padding: 16px; display: none; }
+    .panel.active { display: block; }
+
+    /* Countries / Stocks */
+    .country-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+    .country-card {
+      background: #1e293b;
+      border-radius: 12px;
+      padding: 14px;
+      border: 1px solid #334155;
+      cursor: pointer;
+    }
+    .country-card:active { border-color: #38bdf8; }
+    .country-card h3 { font-size: 0.95rem; margin-bottom: 4px; }
+    .country-card p { font-size: 0.75rem; color: #64748b; }
+
+    .stock-list { list-style: none; }
+    .stock-item {
+      background: #1e293b;
+      border-radius: 12px;
+      padding: 14px;
+      margin-bottom: 10px;
+      border: 1px solid #334155;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      cursor: pointer;
+    }
+    .stock-item:active { border-color: #38bdf8; }
+    .stock-name { font-weight: 600; }
+    .stock-price { font-family: monospace; color: #38bdf8; }
+    .stock-change { font-size: 0.8rem; }
+    .up { color: #4ade80; }
+    .down { color: #f87171; }
+
+    /* News */
+    .news-item {
+      background: #1e293b;
+      border-radius: 12px;
+      padding: 14px;
+      margin-bottom: 10px;
+      border: 1px solid #334155;
+    }
+    .news-item.locked { opacity: 0.7; }
+    .news-item h4 { font-size: 0.95rem; margin-bottom: 6px; }
+    .news-meta { font-size: 0.75rem; color: #64748b; margin-bottom: 8px; }
+    .badge {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 6px;
+      font-size: 0.7rem;
+      font-weight: 600;
+    }
+    .badge-locked { background: #475569; color: #cbd5e1; }
+    .badge-unlocked { background: #166534; color: #bbf7d0; }
+
+    /* Ranking */
+    .rank-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px;
+      background: #1e293b;
+      border-radius: 10px;
+      margin-bottom: 8px;
+    }
+    .rank-item.me { border: 2px solid #38bdf8; }
+    .rank-num {
+      width: 28px;
+      height: 28px;
+      background: #334155;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 0.85rem;
+      margin-right: 10px;
+    }
+    .rank-1 .rank-num { background: #fbbf24; color: #000; }
+    .rank-2 .rank-num { background: #94a3b8; color: #000; }
+    .rank-3 .rank-num { background: #b45309; color: #fff; }
+
+    /* Modal */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.7);
+      display: flex;
+      align-items: flex-end;
+      justify-content: center;
+      z-index: 200;
+      padding: 16px;
+    }
+    .modal {
+      background: #1e293b;
+      border-radius: 20px 20px 12px 12px;
+      width: 100%;
+      max-width: 420px;
+      max-height: 85vh;
+      overflow-y: auto;
+      padding: 20px;
+    }
+    .modal h3 { margin-bottom: 12px; font-size: 1.1rem; }
+    .modal p { color: #94a3b8; font-size: 0.9rem; margin-bottom: 12px; line-height: 1.5; }
+    .modal-actions { display: flex; gap: 10px; margin-top: 16px; }
+    .modal-actions button { flex: 1; }
+    .qty-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin: 12px 0;
+    }
+    .qty-row input { max-width: 100px; margin: 0; text-align: center; }
+
+    /* Quiz options */
+    .quiz-option {
+      display: block;
+      width: 100%;
+      text-align: left;
+      padding: 12px 16px;
+      margin-bottom: 8px;
+      background: #0f172a;
+      border: 2px solid #334155;
+      border-radius: 10px;
+      color: #e2e8f0;
+      font-size: 0.95rem;
+    }
+    .quiz-option:active, .quiz-option.selected { border-color: #38bdf8; background: #1e3a5f; }
+
+    /* Chart simple */
+    .chart-container {
+      background: #0f172a;
+      border-radius: 12px;
+      padding: 12px;
+      margin: 12px 0;
+      height: 160px;
+      position: relative;
+    }
+    canvas { width: 100% !important; height: 140px !important; }
+
+    /* Portfolio */
+    .holding-item {
+      display: flex;
+      justify-content: space-between;
+      padding: 10px 0;
+      border-bottom: 1px solid #334155;
+    }
+
+    /* Event */
+    .event-banner {
+      background: linear-gradient(135deg, #7c3aed, #db2777);
+      padding: 14px;
+      border-radius: 12px;
+      margin-bottom: 16px;
+      text-align: center;
+    }
+
+    .admin-link {
+      position: fixed;
+      bottom: 16px;
+      right: 16px;
+      font-size: 0.75rem;
+      color: #64748b;
+      text-decoration: none;
+      opacity: 0.6;
+    }
+
+    .toast {
+      position: fixed;
+      bottom: 80px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #1e293b;
+      border: 1px solid #38bdf8;
+      padding: 12px 20px;
+      border-radius: 10px;
+      z-index: 300;
+      font-size: 0.9rem;
+      max-width: 90%;
+    }
+
+    .empty { text-align: center; color: #64748b; padding: 40px 20px; }
+  </style>
+</head>
+<body>
+  <!-- LOGIN -->
+  <div id="login-screen">
+    <h1>GLOBAL MARKET</h1>
+    <p>세계 시장 시뮬레이션 게임<br>최대 30명 · 휴대폰으로 함께 플레이</p>
+    <input type="text" id="nickname-input" placeholder="닉네임 (2~16자)" maxlength="16" autocomplete="off">
+    <button class="btn-primary" id="join-btn">게임 참가</button>
+    <p id="login-error" style="color:#f87171;margin-top:12px;font-size:0.85rem;"></p>
+  </div>
+
+  <!-- GAME -->
+  <div id="game-screen" class="hidden">
+    <div id="game-header">
+      <div class="header-row">
+        <span class="month-badge" id="month-display">대기중</span>
+        <span class="timer" id="timer-display">--:--</span>
+      </div>
+      <div class="stats">
+        <span>나: <strong id="my-nickname">-</strong></span>
+        <span>현금: <strong id="my-cash">0</strong></span>
+        <span>총자산: <strong id="my-total">0</strong></span>
+      </div>
+    </div>
+
+    <div class="tabs">
+      <button class="tab active" data-tab="market">시장</button>
+      <button class="tab" data-tab="news">뉴스</button>
+      <button class="tab" data-tab="portfolio">포트폴리오</button>
+      <button class="tab" data-tab="rank">순위</button>
+    </div>
+
+    <div id="panel-market" class="panel active">
+      <div id="event-area"></div>
+      <h3 style="margin-bottom:12px;font-size:1rem;">국가 선택</h3>
+      <div class="country-grid" id="country-grid"></div>
+      <div id="stock-area" class="hidden">
+        <button class="btn-secondary btn-sm" id="back-countries" style="margin-bottom:12px;">← 국가 목록</button>
+        <h3 id="selected-country" style="margin-bottom:12px;"></h3>
+        <button class="btn-secondary btn-sm" id="btn-country-chart" style="width:100%;margin-bottom:12px;">📈 이 국가의 시장 그래프</button>
+        <ul class="stock-list" id="stock-list"></ul>
+      </div>
+    </div>
+
+    <div id="panel-news" class="panel">
+      <p style="font-size:0.85rem;color:#94a3b8;margin-bottom:12px;">퀴즈를 맞춰야 뉴스가 해금됩니다. 한 턴 14개 뉴스 · 오답은 재도전할 수 없습니다.</p>
+      <div id="news-list"></div>
+    </div>
+
+    <div id="panel-portfolio" class="panel">
+      <div style="background:#1e293b;padding:16px;border-radius:12px;margin-bottom:16px;">
+        <div style="display:flex;justify-content:space-between;margin-bottom:8px;">
+          <span>현금</span><strong id="pf-cash">0</strong>
+        </div>
+        <div style="display:flex;justify-content:space-between;margin-bottom:8px;">
+          <span>총자산</span><strong id="pf-total" style="color:#38bdf8;">0</strong>
+        </div>
+        <div style="display:flex;justify-content:space-between;">
+          <span>사회가치 포인트</span><strong id="pf-social">0</strong>
+        </div>
+      </div>
+      <h3 style="margin-bottom:12px;font-size:1rem;">보유 종목</h3>
+      <div id="holdings-list"></div>
+    </div>
+
+    <div id="panel-rank" class="panel">
+      <div id="ranking-list"></div>
+    </div>
+  </div>
+
+  <!-- Trade Modal -->
+  <div id="trade-modal" class="modal-overlay hidden">
+    <div class="modal">
+      <h3 id="trade-stock-name">-</h3>
+      <p>현재가: <strong id="trade-price">0</strong>원</p>
+      <div class="qty-row">
+        <label>수량</label>
+        <input type="number" id="trade-qty" value="1" min="1">
+      </div>
+      <div class="modal-actions">
+        <button class="btn-success" id="btn-buy">매수</button>
+        <button class="btn-danger" id="btn-sell">매도</button>
+      </div>
+      <button class="btn-secondary" style="width:100%;margin-top:10px;" id="btn-chart">가격 그래프 보기</button>
+      <button class="btn-secondary" style="width:100%;margin-top:8px;" id="close-trade">닫기</button>
+    </div>
+  </div>
+
+  <!-- Chart Modal -->
+  <div id="chart-modal" class="modal-overlay hidden">
+    <div class="modal">
+      <h3 id="chart-title">가격 추이</h3>
+      <div class="chart-container">
+        <canvas id="price-chart"></canvas>
+      </div>
+      <button class="btn-secondary" style="width:100%;" id="close-chart">닫기</button>
+    </div>
+  </div>
+
+  <!-- Quiz Modal -->
+  <div id="quiz-modal" class="modal-overlay hidden">
+    <div class="modal">
+      <h3>뉴스 해금 퀴즈</h3>
+      <p id="quiz-question"></p>
+      <div id="quiz-options"></div>
+      <button class="btn-secondary" style="width:100%;margin-top:12px;" id="close-quiz">닫기</button>
+    </div>
+  </div>
+
+  <!-- News Detail Modal -->
+  <div id="news-modal" class="modal-overlay hidden">
+    <div class="modal">
+      <h3 id="news-title"></h3>
+      <p id="news-content"></p>
+      <p style="font-size:0.8rem;color:#64748b;">관련 종목: <span id="news-related"></span></p>
+      <button class="btn-primary" style="width:100%;margin-top:12px;" id="close-news">확인</button>
+    </div>
+  </div>
+
+  <!-- Event Modal -->
+  <div id="event-modal" class="modal-overlay hidden">
+    <div class="modal">
+      <h3 id="event-title"></h3>
+      <p id="event-desc"></p>
+      <div id="event-choices"></div>
+    </div>
+  </div>
+
+  <a href="/admin.html" class="admin-link" target="_blank">관리자</a>
+  <div id="toast" class="toast hidden"></div>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script>
+    const socket = io();
+    let myNickname = '';
+    let myCash = 0;
+    let myTotal = 0;
+    let myHoldings = {};
+    let mySocial = 0;
+    let currentPrices = {};
+    let priceHistory = {};
+    let currentTurn = 0;
+    let selectedStock = null;
+    let selectedCountry = null;
+    let failedNews = new Set();
+    let sessionToken = localStorage.getItem('gm_session_token') || '';
+    let savedNickname = localStorage.getItem('gm_nickname') || '';
+    let countries = {
+      KR: { name: '대한민국', stocks: ['K-CHIP', 'K-MOTOR', 'K-FOOD', 'K-BATTERY', 'K-CONTENT'] },
+      JP: { name: '일본', stocks: ['J-AUTO', 'J-ELEC', 'J-GAME', 'J-PRECISE', 'J-FOOD'] },
+      US: { name: '미국', stocks: ['US-IT', 'US-BIO', 'US-FIN', 'US-CONTENT', 'US-AUTO'] },
+      CN: { name: '중국', stocks: ['CN-ELEC', 'CN-BATTERY', 'CN-MANU', 'CN-PLATFORM', 'CN-FOOD'] },
+      DE: { name: '독일', stocks: ['DE-AUTO', 'DE-CHEM', 'DE-MACH', 'DE-GREEN', 'DE-FOOD'] },
+      FR: { name: '프랑스', stocks: ['FR-LUX', 'FR-COSME', 'FR-FOOD', 'FR-TOUR', 'FR-AIR'] },
+      IN: { name: '인도', stocks: ['IN-IT', 'IN-PHARMA', 'IN-AUTO', 'IN-FOOD', 'IN-ENERGY'] },
+      SA: { name: '사우디', stocks: ['SA-OIL', 'SA-PETRO', 'SA-ENERGY', 'SA-CONST', 'SA-TOUR'] },
+      AE: { name: 'UAE', stocks: ['AE-OIL', 'AE-LOGIS', 'AE-FIN', 'AE-TOUR', 'AE-CONST'] },
+      BR: { name: '브라질', stocks: ['BR-AGRI', 'BR-FOOD', 'BR-MINING', 'BR-ENERGY', 'BR-AIR'] }
+    };
+
+    function formatMoney(n) {
+      return '₩' + Math.floor(n).toLocaleString('ko-KR');
+    }
+    function formatTime(ms) {
+      const s = Math.max(0, Math.floor(ms / 1000));
+      const m = Math.floor(s / 60);
+      const sec = s % 60;
+      return String(m).padStart(2, '0') + ':' + String(sec).padStart(2, '0');
+    }
+    function showToast(msg) {
+      const t = document.getElementById('toast');
+      t.textContent = msg;
+      t.classList.remove('hidden');
+      setTimeout(() => t.classList.add('hidden'), 2500);
+    }
+
+    // Login
+    document.getElementById('join-btn').onclick = () => {
+      const nick = document.getElementById('nickname-input').value.trim();
+      if (nick.length < 2 || nick.length > 16) {
+        document.getElementById('login-error').textContent = '닉네임은 2~16자로 입력하세요.';
+        return;
+      }
+      socket.emit('join', { nickname: nick, sessionToken });
+    };
+    document.getElementById('nickname-input').addEventListener('keydown', e => {
+      if (e.key === 'Enter') document.getElementById('join-btn').click();
+    });
+
+    socket.on('connect', () => {
+      if (sessionToken && savedNickname) socket.emit('join', { nickname: savedNickname, sessionToken });
+    });
+
+    socket.on('joined', (data) => {
+      myNickname = data.nickname;
+      savedNickname = data.nickname;
+      sessionToken = data.sessionToken || sessionToken;
+      if (sessionToken) localStorage.setItem('gm_session_token', sessionToken);
+      if (savedNickname) localStorage.setItem('gm_nickname', savedNickname);
+      myCash = data.cash;
+      myTotal = data.total;
+      failedNews = new Set(data.failedNews || []);
+      myHoldings = data.holdings || {};
+      document.getElementById('login-screen').classList.add('hidden');
+      document.getElementById('game-screen').classList.remove('hidden');
+      document.getElementById('my-nickname').textContent = myNickname;
+      updateMoney();
+      renderCountries();
+    });
+    socket.on('error', (data) => {
+      document.getElementById('login-error').textContent = data.message || '오류';
+      showToast(data.message || '오류가 발생했습니다.');
+    });
+
+    function updateMoney() {
+      document.getElementById('my-cash').textContent = formatMoney(myCash);
+      document.getElementById('my-total').textContent = formatMoney(myTotal);
+      document.getElementById('pf-cash').textContent = formatMoney(myCash);
+      document.getElementById('pf-total').textContent = formatMoney(myTotal);
+      document.getElementById('pf-social').textContent = mySocial;
+    }
+
+    // Tabs
+    document.querySelectorAll('.tab').forEach(tab => {
+      tab.onclick = () => {
+        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+        document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+        tab.classList.add('active');
+        document.getElementById('panel-' + tab.dataset.tab).classList.add('active');
+        if (tab.dataset.tab === 'news') socket.emit('getNewsList');
+        if (tab.dataset.tab === 'portfolio') {
+          socket.emit('getPortfolio');
+          renderHoldings();
+        }
+        if (tab.dataset.tab === 'rank') renderRanking();
+      };
+    });
+
+    // Countries
+    function renderCountries() {
+      const grid = document.getElementById('country-grid');
+      grid.innerHTML = '';
+      Object.entries(countries).forEach(([code, c]) => {
+        const div = document.createElement('div');
+        div.className = 'country-card';
+        div.innerHTML = `<h3>${c.name}</h3><p>${c.stocks.length}개 종목</p>`;
+        div.onclick = () => showStocks(code);
+        grid.appendChild(div);
+      });
+      // Bitcoin
+      const btc = document.createElement('div');
+      btc.className = 'country-card';
+      btc.style.gridColumn = '1 / -1';
+      btc.innerHTML = `<h3>₿ BITCOIN</h3><p>고변동성 글로벌 자산</p>`;
+      btc.onclick = () => openTrade('BITCOIN');
+      grid.appendChild(btc);
+    }
+
+    function showStocks(code) {
+      selectedCountry = code;
+      document.getElementById('country-grid').classList.add('hidden');
+      document.getElementById('stock-area').classList.remove('hidden');
+      document.getElementById('selected-country').textContent = countries[code].name;
+      const list = document.getElementById('stock-list');
+      list.innerHTML = '';
+      countries[code].stocks.forEach(s => {
+        const li = document.createElement('li');
+        li.className = 'stock-item';
+        const price = currentPrices[s] || 0;
+        li.innerHTML = `<span class="stock-name">${s}</span><span class="stock-price">${formatMoney(price)}</span>`;
+        li.onclick = () => openTrade(s);
+        list.appendChild(li);
+      });
+    }
+    document.getElementById('back-countries').onclick = () => {
+      document.getElementById('stock-area').classList.add('hidden');
+      document.getElementById('country-grid').classList.remove('hidden');
+    };
+
+    // Trade
+    function openTrade(stock) {
+      selectedStock = stock;
+      document.getElementById('trade-stock-name').textContent = stock;
+      document.getElementById('trade-price').textContent = formatMoney(currentPrices[stock] || 0);
+      document.getElementById('trade-qty').value = 1;
+      document.getElementById('trade-modal').classList.remove('hidden');
+    }
+    document.getElementById('btn-country-chart').onclick = () => {
+      if (!selectedCountry) return;
+      socket.emit('getCountryHistory', { country: selectedCountry });
+      document.getElementById('chart-modal').classList.remove('hidden');
+      document.getElementById('chart-title').textContent = countries[selectedCountry].name + ' 시장 변동 (시작=100)';
+    };
+    document.getElementById('close-trade').onclick = () => document.getElementById('trade-modal').classList.add('hidden');
+    document.getElementById('btn-buy').onclick = () => {
+      const qty = parseInt(document.getElementById('trade-qty').value, 10);
+      if (!qty || qty < 1) return showToast('수량을 입력하세요.');
+      socket.emit('trade', { stock: selectedStock, action: 'buy', qty });
+    };
+    document.getElementById('btn-sell').onclick = () => {
+      const qty = parseInt(document.getElementById('trade-qty').value, 10);
+      if (!qty || qty < 1) return showToast('수량을 입력하세요.');
+      socket.emit('trade', { stock: selectedStock, action: 'sell', qty });
+    };
+    document.getElementById('btn-chart').onclick = () => {
+      socket.emit('getPriceHistory', { stock: selectedStock });
+      document.getElementById('trade-modal').classList.add('hidden');
+      document.getElementById('chart-modal').classList.remove('hidden');
+      document.getElementById('chart-title').textContent = selectedStock + ' 가격 추이';
+    };
+    document.getElementById('close-chart').onclick = () => document.getElementById('chart-modal').classList.add('hidden');
+
+    socket.on('tradeResult', (data) => {
+      if (data.success) {
+        myCash = data.cash;
+        myHoldings = data.holdings;
+        myTotal = data.total;
+        updateMoney();
+        document.getElementById('trade-modal').classList.add('hidden');
+        showToast('거래 완료');
+        renderHoldings();
+      }
+    });
+
+    // Chart
+    socket.on('priceHistory', (data) => {
+      const canvas = document.getElementById('price-chart');
+      const ctx = canvas.getContext('2d');
+      const hist = data.history || [];
+      if (hist.length < 2) {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.fillStyle = '#94a3b8';
+        ctx.font = '14px sans-serif';
+        ctx.fillText('데이터가 부족합니다', 20, 70);
+        return;
+      }
+      canvas.width = canvas.offsetWidth * 2;
+      canvas.height = 280;
+      const w = canvas.width;
+      const h = canvas.height;
+      ctx.clearRect(0, 0, w, h);
+      const min = Math.min(...hist) * 0.95;
+      const max = Math.max(...hist) * 1.05;
+      const range = max - min || 1;
+      ctx.strokeStyle = '#38bdf8';
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      hist.forEach((p, i) => {
+        const x = (i / (hist.length - 1)) * (w - 40) + 20;
+        const y = h - 30 - ((p - min) / range) * (h - 50);
+        if (i === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+      });
+      ctx.stroke();
+      // labels
+      ctx.fillStyle = '#94a3b8';
+      ctx.font = '20px sans-serif';
+      ctx.fillText(formatMoney(hist[0]), 20, h - 5);
+      ctx.fillText(formatMoney(hist[hist.length - 1]), w - 120, h - 5);
+    });
+
+    socket.on('countryHistory', (data) => {
+      const canvas = document.getElementById('price-chart');
+      const ctx = canvas.getContext('2d');
+      const series = data.stocks || [];
+      const histLen = Math.max(0, ...series.map(x => x.values.length));
+      canvas.width = Math.max(320, canvas.offsetWidth * 2);
+      canvas.height = 300;
+      const w = canvas.width, h = canvas.height;
+      ctx.clearRect(0, 0, w, h);
+      if (!series.length || histLen < 2) {
+        ctx.fillStyle = '#94a3b8'; ctx.font = '28px sans-serif'; ctx.fillText('아직 그래프 데이터가 없습니다', 20, 70); return;
+      }
+      const flat = series.flatMap(x => x.values);
+      const min = Math.min(...flat) * 0.95, max = Math.max(...flat) * 1.05, range = max-min || 1;
+      series.forEach((line, idx) => {
+        const hue = (idx * 67) % 360;
+        ctx.strokeStyle = `hsl(${hue},70%,65%)`; ctx.lineWidth = 3; ctx.beginPath();
+        line.values.forEach((v,i)=>{ const x=40+(i/(histLen-1))*(w-60); const y=h-35-((v-min)/range)*(h-65); if(i===0)ctx.moveTo(x,y);else ctx.lineTo(x,y); });
+        ctx.stroke();
+        ctx.fillStyle = `hsl(${hue},70%,75%)`; ctx.font='20px sans-serif'; ctx.fillText(line.stock, 45 + (idx%2)*150, 25 + Math.floor(idx/2)*24);
+      });
+      ctx.fillStyle='#94a3b8'; ctx.font='18px sans-serif'; ctx.fillText('시작=100', 40, h-8);
+    });
+
+    // News
+    socket.on('newsList', (list) => {
+      const el = document.getElementById('news-list');
+      el.innerHTML = '';
+      if (!list || list.length === 0) {
+        el.innerHTML = '<div class="empty">아직 뉴스가 없습니다. 관리자가 게임을 시작하면 나타납니다.</div>';
+        return;
+      }
+      list.forEach(n => {
+        const div = document.createElement('div');
+        div.className = 'news-item' + (n.unlocked ? '' : ' locked');
+        const statusText = n.unlocked ? '해금됨' : (n.failed ? '오답 처리됨 - 재도전 불가' : '잠김 - 퀴즈 필요');
+        const badgeClass = n.unlocked ? 'badge-unlocked' : 'badge-locked';
+        div.innerHTML = `
+          <h4>${n.title}</h4>
+          <div class="news-meta">
+            <span class="badge ${badgeClass}">${statusText}</span>
+          </div>
+        `;
+        div.onclick = () => {
+          if (n.failed) return showToast('오답 처리된 퀴즈라 다시 도전할 수 없습니다.');
+          socket.emit('getQuiz', { newsId: n.id });
+        };
+        el.appendChild(div);
+      });
+    });
+
+    socket.on('quiz', (data) => {
+      document.getElementById('quiz-question').textContent = data.q;
+      const opts = document.getElementById('quiz-options');
+      opts.innerHTML = '';
+      data.options.forEach((opt, i) => {
+        const btn = document.createElement('button');
+        btn.className = 'quiz-option';
+        btn.textContent = (data.type === 'ox' ? '' : (i + 1) + '. ') + opt;
+        btn.onclick = () => {
+          socket.emit('submitQuiz', { newsId: data.newsId, answer: i });
+        };
+        opts.appendChild(btn);
+      });
+      document.getElementById('quiz-modal').classList.remove('hidden');
+    });
+
+    socket.on('quizResult', (data) => {
+      if (data.correct) {
+        document.getElementById('quiz-modal').classList.add('hidden');
+        if (data.news) {
+          document.getElementById('news-title').textContent = data.news.title;
+          document.getElementById('news-content').textContent = data.news.content;
+          document.getElementById('news-related').textContent = (data.news.relatedStocks || []).join(', ');
+          document.getElementById('news-modal').classList.remove('hidden');
+        }
+        showToast('정답! 뉴스가 해금되었습니다.');
+        socket.emit('getNewsList');
+      } else {
+        document.getElementById('quiz-modal').classList.add('hidden');
+        if (data.failed && data.newsId) failedNews.add(Number(data.newsId));
+        showToast(data.message || '틀렸습니다. 다시 시도할 수 없습니다.');
+        socket.emit('getNewsList');
+      }
+    });
+
+    socket.on('newsDetail', (news) => {
+      document.getElementById('news-title').textContent = news.title;
+      document.getElementById('news-content').textContent = news.content;
+      document.getElementById('news-related').textContent = (news.relatedStocks || []).join(', ');
+      document.getElementById('news-modal').classList.remove('hidden');
+      document.getElementById('quiz-modal').classList.add('hidden');
+    });
+
+    document.getElementById('close-quiz').onclick = () => document.getElementById('quiz-modal').classList.add('hidden');
+    document.getElementById('close-news').onclick = () => document.getElementById('news-modal').classList.add('hidden');
+
+    // Portfolio
+    function renderHoldings() {
+      const el = document.getElementById('holdings-list');
+      const entries = Object.entries(myHoldings || {}).filter(([_, q]) => q > 0);
+      if (entries.length === 0) {
+        el.innerHTML = '<div class="empty">보유 종목이 없습니다.</div>';
+        return;
+      }
+      el.innerHTML = entries.map(([s, q]) => {
+        const val = (currentPrices[s] || 0) * q;
+        return `<div class="holding-item"><span>${s} × ${q}</span><span>${formatMoney(val)}</span></div>`;
+      }).join('');
+    }
+    socket.on('portfolio', (data) => {
+      myCash = data.cash;
+      myHoldings = data.holdings;
+      myTotal = data.total;
+      mySocial = data.socialPoints || 0;
+      failedNews = new Set(data.failedNews || []);
+      currentPrices = data.prices || currentPrices;
+      updateMoney();
+      renderHoldings();
+    });
+
+    // Ranking
+    let lastRanking = [];
+    function renderRanking() {
+      const el = document.getElementById('ranking-list');
+      if (!lastRanking.length) {
+        el.innerHTML = '<div class="empty">순위 정보가 없습니다.</div>';
+        return;
+      }
+      el.innerHTML = lastRanking.map((r, i) => {
+        const isMe = r.nickname === myNickname;
+        return `<div class="rank-item rank-${i + 1} ${isMe ? 'me' : ''}">
+          <div style="display:flex;align-items:center;">
+            <span class="rank-num">${i + 1}</span>
+            <span>${r.nickname}${isMe ? ' (나)' : ''}</span>
+          </div>
+          <strong>${formatMoney(r.total)}</strong>
+        </div>`;
+      }).join('');
+    }
+
+    // State updates
+    socket.on('state', (data) => {
+      currentTurn = data.turn;
+      currentPrices = data.prices || {};
+      priceHistory = data.priceHistory || {};
+      lastRanking = data.ranking || [];
+      document.getElementById('month-display').textContent = data.month || '대기중';
+      if (data.remainingMs !== undefined) {
+        const t = document.getElementById('timer-display');
+        t.textContent = formatTime(data.remainingMs);
+        t.classList.toggle('low', data.remainingMs < 60000);
+      }
+      // update stock prices if visible
+      if (!document.getElementById('stock-area').classList.contains('hidden')) {
+        document.querySelectorAll('.stock-item').forEach(li => {
+          const name = li.querySelector('.stock-name').textContent;
+          const priceEl = li.querySelector('.stock-price');
+          if (priceEl && currentPrices[name]) priceEl.textContent = formatMoney(currentPrices[name]);
+        });
+      }
+      myTotal = getMyTotalFromRank() || myTotal;
+      updateMoney();
+      if (document.getElementById('panel-rank').classList.contains('active')) renderRanking();
+    });
+
+    function getMyTotalFromRank() {
+      const me = lastRanking.find(r => r.nickname === myNickname);
+      return me ? me.total : null;
+    }
+
+    socket.on('timer', (data) => {
+      const t = document.getElementById('timer-display');
+      t.textContent = formatTime(data.remainingMs);
+      t.classList.toggle('low', data.remainingMs < 60000);
+      document.getElementById('month-display').textContent = data.turn > 0 ? (data.turn + '월') : '대기중';
+    });
+
+    socket.on('specialEvent', (data) => {
+      document.getElementById('event-title').textContent = data.title;
+      document.getElementById('event-desc').textContent = data.description;
+      const choices = document.getElementById('event-choices');
+      choices.innerHTML = '';
+      data.choices.forEach(c => {
+        const btn = document.createElement('button');
+        btn.className = 'btn-primary';
+        btn.style.width = '100%';
+        btn.style.marginBottom = '8px';
+        btn.textContent = c.text;
+        btn.onclick = () => {
+          socket.emit('eventChoice', { type: data.type, choice: c.id });
+          document.getElementById('event-modal').classList.add('hidden');
+        };
+        choices.appendChild(btn);
+      });
+      document.getElementById('event-modal').classList.remove('hidden');
+    });
+
+    socket.on('eventResult', (data) => {
+      if (data.cash !== undefined) myCash = data.cash;
+      if (data.socialPoints !== undefined) mySocial = data.socialPoints;
+      updateMoney();
+      showToast(data.message || '이벤트 반영됨');
+    });
+
+    socket.on('gameEnd', (data) => {
+      lastRanking = data.ranking || [];
+      showToast('게임 종료! 최종 순위를 확인하세요.');
+      document.querySelector('[data-tab="rank"]').click();
+      renderRanking();
+    });
+
+    socket.on('reset', () => {
+      location.reload();
+    });
+
+    // Initial countries
+    renderCountries();
+  </script>
+</body>
+</html>
